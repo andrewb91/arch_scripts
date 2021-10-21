@@ -1,0 +1,72 @@
+gdisk /dev/sdb
+
+New 500MB   ef00 (for boot partition)
+New Rest of Drive 8e00
+
+pacman -S git
+
+git clone https://github.com/andrewb91/arch_scripts
+chmod +x scr_01
+chmod +x scr_02
+chmod +x scr_03
+
+RUN scr_01
+***  run lsblk to verify layout and mountpoints are correct  ***
+
+lsblk
+sdb    8:16   0 465.8G  0 disk  
+├─sdb1
+│      8:17   0   500M  0 part  /boot
+└─sdb2
+       8:18   0 465.3G  0 part  
+  └─cryptlvm
+     254:0    0 465.3G  0 crypt 
+    ├─vg1-root
+    │  254:1    0    10G  0 lvm   /
+    ├─vg1-usr
+    │  254:1    0    25G  0 lvm   /usr
+    ├─vg1-swap
+    │  254:2    0    16G  0 lvm   [SWAP]
+    ├─vg1-var
+    |  254:3    0    2G  0 lvm    /var
+    └─vg1-home
+       254:3    0    20G  0 lvm   /home
+
+
+RUN scr_02
+***   add hooks in initcpio.conf   ***
+
+
+#vim /etc/mkinitcpio.conf
+HOOKS=(base udev autodetect modconf block encrypt lvm2 resume filesystems keyboard fsck)
+:wq
+
+mkinitcpio -p linux
+
+
+***   edit grub.conf for encryption and hibernation   ***
+
+
+blkid >> blockid
+vim blockid
+# yy to copy line
+
+# p to paste into grub
+
+vim /etc/default/grub
+
+(/dev/sdb2 for cryptdevice=UUID and /dev/mapper/vg1-swap for resume UUID)
+
+# make it look like:
+
+GRUB_DEFAULT="0"
+GRUB_TIMEOUT="10"
+GRUB_DISTRIBUTOR="Arch"
+GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"
+GRUB_CMDLINE_LINUX="cryptdevice=UUID=c5546dc4-e16d-4162-bcd3-3f78af3ee1b0:cryptlvm root=/dev/vg1/root resume=UUID=cb662baa-242a-4332-9f42-53eaa97c6a77"
+
+:wq
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
+RUN scr_03

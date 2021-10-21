@@ -1,0 +1,157 @@
+sudo reflector -c 'United States' -a 6 --sort rate --save /etc/pacman.d/mirrorlist
+
+If needed, load your keymap
+Refresh the servers with pacman -Syy
+Partition the disk
+Format the partitions
+Mount the partitions
+Install the base packages into /mnt (pacstrap /mnt base linux-zen linux-zen-headers linux-firmware git vim intel-ucode (or amd-ucode))
+Generate the FSTAB file with genfstab -U /mnt >> /mnt/etc/FSTAB
+Chroot in with arch-chroot /mnt
+
+useradd -m  drew
+echo "drew ALL=(ALL) ALL" >> /etc/sudoers.d/drew
+
+Download the git repository with git clone https://gitlab.com/eflinux/arch-basic
+
+cd arch-basic
+chmod +x install-uefi.sh
+run with ./install-uefi.sh
+
+Apparmor:
+https://www.youtube.com/watch?v=-3W2f_JL3yw
+https://wiki.archlinux.org/title/AppArmor
+https://wiki.archlinux.org/title/Audit_framework
+
+sudo pacman -S --needed picom cairo gufw openbox obconf cpanminus nitrogen redshift pcsx2 transmission-gtk blueman youtube-dl samba cmake gnome-mahjongg engrampa pavucontrol gnome-keyring openvpn networkmanager-openvpn gimp okular tlp mesa fuse2 fuse3 ntfs-3g exfat-utils dkms man-db man-pages system-config-printer clamav wine wine-gecko wine-mono steam lutris openmw libreoffice-fresh arandr numlockx gvfs gvfs-smb hplip tlp alsa-utils dnsutils
+
+Install fonts:
+sudo pacman -S ttf-ubuntu-font-family ttf-dejavu ttf-bitstream-vera ttf-liberation noto-fonts dina-font tamsyn-font bdf-unifont ttf-croscore ttf-droid ttf-ibm-plex ttf-linux-libertine ttf-roboto tex-gyre-fonts ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji
+
+
+# Lynis
+git clone https://github.com/CISOfy/lynis
+from /home/drew:
+sudo  cd lynis; ./lynis audit system
+
+
+# Install yay and Pamac
+
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+yay -S pamac-aur
+
+#Install with yay -S (as regular user)
+protonmail-bridge
+conky-lua
+obmenu-generator
+i3lock-fancy
+timeshift
+brave-browser
+*hibernator (not needed?)
+ttf-ms-fonts
+
+#Clamav
+
+#sudo pacman -S clamav (if not installed previously)
+sudo freshclam
+#lets definitions update
+sudo systemctl start clamav-freshclam.service
+sudo systemctl enable clamav-freshclam.service
+sudo systemctl start clamav-daemon.service
+sudo systemctl enable clamav-daemon.service
+sudo pacman -S clamtk
+#Command for use:
+sudo clamtk
+
+
+#Firewall
+sudo systemctl start ufw
+sudo systemctl enable ufw
+
+RULES:
+631 allow IN Anywhere CUPS
+631 allow OUT Anywhere CUPS
+631 (v6) allow IN Anywhere CUPS
+631 (v6) allow OUT Anywhere CUPS
+
+add ufw to startup if won't autostart at boot
+
+sudo ufw status
+
+swappiness
+1. Create /etc/sysctl.conf and put your settings in it.
+2. Add /sbin/sysctl -p to /etc/rc.local.
+3. Reboot or run sysctl -p as root.
+
+
+#Wine
+sudo gedit /etc/pacman.conf
+remove # from both entries
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+
+run
+pacman -S wine wine-gecko wine-mono steam lutris openmw 
+
+
+Orphaned packages
+sudo pacman -Rs $(pacman -Qqtd)
+cd 
+Clean cache
+sudo pacman -Scc
+
+Enabling Hibernation
+to grub.conf add: 
+GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"
+GRUB_CMDLINE_LINUX="cryptdevice=UUID=8f000855-45d1-4909-a19f-20db45c1285e:cryptlvm root=/dev/vg1/root resume=UUID=ed5a70e6-0d6e-44b4-9e5e-0a23911ebbc5"
+
+and to /etc/mkinitcpio.conf add the hook:
+resume after lvm2
+
+regenerate with 
+sudo mkinitcpio -p linux
+
+https://wiki.archlinux.org/index.php/Mkinitcpio#Image_creation_and_activation
+
+sudo ln -s /Files/Pictures/Wallpaper /usr/share/backgrounds
+
+
+XFCE 
+sudo pacman -S xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings firefox gedit xfce4 xfce4-goodies
+
+Openbox on XFCE4
+
+$ openbox --replace & exit
+
+Nothing will appear different. No openbox root menu will show because xfdesktop is still in charge. If it is not already present, ~/.config/openbox:
+
+mkdir ~/.config/openbox
+
+Populate it with your openbox stock autostart.sh, menu.xml and rc.xml, or copy the general openbox config files to it:
+
+sudo cp /etc/xdg/openbox/* ~/.config/openbox/ .
+
+# To run openbox on xfce4
+xfdesktop --quit
+pkill xfwm4
+# To uninstall them: sudo pacman -R xfdesktop xfwm4
+
+#Virtualbox
+https://www.youtube.com/watch?v=vQUOf2E6XZw
+sudo pacman -S virtualbox
+sudo modprobe vboxdrv
+sudo usermod -aG vboxusers drew
+sudo pacman -S virtualbox-guest-iso
+
+
+
+
+#TO RESET:
+
+sudo systemctl disable lightdm (or whichever displaymanager is installed)
+sudo pacman -D --asdeps $(pacman -Qqe)
+sudo pacman -D --asexplicit base linux-zen linux-zen-headers linux-firmware git vim intel-ucode grub
+su -
+pacman -Qttdq | pacman -Rns -
