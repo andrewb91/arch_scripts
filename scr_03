@@ -1,0 +1,20 @@
+#!/bin/bash
+
+mkinitcpio -p linux
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
+systemctl enable NetworkManager
+systemctl enable bluetooth
+systemctl enable cups.service
+systemctl enable sshd
+systemctl enable tlp
+systemctl enable firewalld
+systemctl enable acpid
+
+useradd -m drew
+echo drew:password | chpasswd
+
+echo "drew ALL=(ALL) ALL" >> /etc/sudoers.d/drew
+
+printf "\e[1;32mDone! Type exit, umount -a and reboot.\e[0m"
