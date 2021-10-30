@@ -8,14 +8,17 @@ pvcreate /dev/mapper/cryptlvm
 
 vgcreate vg1 /dev/mapper/cryptlvm
 
-lvcreate -L 10G vg1 -n root
+lvcreate -L 5G vg1 -n root
 lvcreate -L 25G vg1 -n usr
+lvcreate -L 10G vg1 -n opt
+lvcreate -L 5G vg1 -n var
+lvcreate -L 5G vg1 -n tmp
 lvcreate -L 16G vg1 -n swap
-lvcreate -L 2G vg1 -n var
 lvcreate -L 20G vg1 -n home
 
 mkfs.fat -F32 /dev/sdb1
-mkfs.ext4 /dev/vg1/root
+lvcreate -L 5G vg1 -n opt
+lvcreate -L 5G vg1 -n tmp
 mkfs.ext4 /dev/vg1/usr
 mkfs.ext4 /dev/vg1/var
 mkfs.ext4 /dev/vg1/home
@@ -25,11 +28,16 @@ mount /dev/vg1/root /mnt
 mkdir /mnt/boot
 mount /dev/sdb1 /mnt/boot
 mkdir /mnt/usr
-mount /dev/vg1/usr /mnt/usr
-mkdir /mnt/home
-mount /dev/vg1/home /mnt/home
+mkdir /mnt/opt
+mkdir /mnt/tmp
 mkdir /mnt/var
+mkdir /mnt/home
+
+mount /dev/vg1/usr /mnt/usr
+mount /dev/vg1/opt /mnt/opt
+mount /dev/vg1/tmp /mnt/tmp
 mount /dev/vg1/var /mnt/var
+mount /dev/vg1/home /mnt/home
 
 swapon /dev/vg1/swap
 

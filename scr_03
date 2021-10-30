@@ -13,8 +13,7 @@ systemctl enable firewalld
 systemctl enable acpid
 
 useradd -m drew
-echo drew:password | chpasswd
 
 echo "drew ALL=(ALL) ALL" >> /etc/sudoers.d/drew
 
-printf "\e[1;32mDone! Type exit, umount -a and reboot.\e[0m"
+
